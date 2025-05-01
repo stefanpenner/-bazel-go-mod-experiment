@@ -72,7 +72,8 @@ _go_mod = rule(
             doc = "The module path (e.g., github.com/my_project)",
         ),
         "version": attr.string(
-            mandatory = True,
+            # TODO: make this versioning work
+            default = "{VOLATILE_VERSION}",
             doc = "The module version (e.g., v0.1.0)",
         ),
         "_archive_tool": attr.label(
@@ -84,13 +85,13 @@ _go_mod = rule(
     },
     doc = "Creates a Go module archive (.zip) for use with a Go proxy",
 )
+
 def go_mod(name, go_mod, srcs, module_path, strip_prefix = None, visibility = None):
     _go_mod(
         name = name,
         go_mod = go_mod,
         srcs = srcs,
         module_path = module_path,
-        version = "{VOLATILE_VERSION}" if "{VOLATILE_VERSION}" else '0.0.0',
         strip_prefix = strip_prefix,
         visibility = visibility,
     )
