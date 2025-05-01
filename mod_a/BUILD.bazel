@@ -28,5 +28,8 @@ go_library(
     srcs = ["main.go"],
     importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_a",
     visibility = ["//visibility:private"],
-    deps = ["//mod_a/foo"],
+    deps = [
+        "//mod_a/foo",
+        "//mod_b",
+    ],
 )

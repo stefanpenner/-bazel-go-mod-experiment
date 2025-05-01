@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "lib",
+    srcs = ["lib.go"],
+    importpath = "",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "mod_b",
+    srcs = ["lib.go"],
+    importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_b",
+    visibility = ["//visibility:public"],
+)
