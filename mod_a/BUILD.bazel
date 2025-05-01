@@ -1,25 +1,12 @@
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
 load("//rules:go_mod.bzl", "go_mod")
 
-go_library(
-    name = "-bazel-go-mod-experiment_lib",
-    srcs = ["main.go"],
-    importpath = "github.com/stefanpenner/-bazel-go-mod-experiment",
-    visibility = ["//visibility:private"],
-    deps = ["//mod_a/foo"],
-)
-
-go_binary(
-    name = "-bazel-go-mod-experiment",
-    embed = [":mod_a_lib"],
-    visibility = ["//visibility:public"],
-)
-
 go_mod(
     name = "go_mod",
-    srcs = ["-bazel-go-mod-experiment_lib"],
+    srcs = ["mod_a_lib"],
     go_mod = ":go.mod",
-    module_path = "github.com/stefanpenner/-bazel-go-mod-experiment",
+    module_path = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_a",
+    strip_prefix = "mod_a",
     version = "0.1.0",
 )
 
@@ -32,4 +19,10 @@ go_library(
         "//mod_a/foo",
         "//mod_b",
     ],
+)
+
+go_binary(
+    name = "mod_a",
+    embed = [":mod_a_lib"],
+    visibility = ["//visibility:public"],
 )
