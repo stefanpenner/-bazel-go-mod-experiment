@@ -1,0 +1,14 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "archive_tool_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/archive_tool",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "archive_tool",
+    embed = [":archive_tool_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,20 +1,5 @@
 load("@gazelle//:def.bzl", "gazelle")
-load("@rules_go//go:def.bzl", "go_binary", "go_library")
 
 gazelle(
     name = "gazelle",
-)
-
-go_library(
-    name = "-bazel-go-mod-experiment_lib",
-    srcs = ["main.go"],
-    importpath = "github.com/stefanpenner/-bazel-go-mod-experiment",
-    visibility = ["//visibility:private"],
-    deps = ["//foo"],
-)
-
-go_binary(
-    name = "-bazel-go-mod-experiment",
-    embed = [":-bazel-go-mod-experiment_lib"],
-    visibility = ["//visibility:public"],
 )

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/stefanpenner/-bazel-go-mod-experiment/foo"
+	"github.com/stefanpenner/-bazel-go-mod-experiment/mod_a/foo"
 )
 
 func main() {

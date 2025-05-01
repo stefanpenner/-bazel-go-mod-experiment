@@ -3,6 +3,6 @@ load("@rules_go//go:def.bzl", "go_library")
 go_library(
     name = "foo",
     srcs = ["foo.go"],
-    importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/foo",
+    importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_a/foo",
     visibility = ["//visibility:public"],
 )
