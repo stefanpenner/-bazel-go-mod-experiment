@@ -11,6 +11,7 @@ https://excalidraw.com/#json=f6YI4RFIy_ekfjJ3NBGvI,vZonSZodkQ0jZYRuVAAi4A
 - [ ] can go_mod rule infer go.mod location, rather then hardcoding it?
 - [ ] version manifest
 - [ ] gazelle rule to generate go_mod files
+- [ ] relationshipn betweeen publishing rule and go_mod, how does it work, and how do we derive which go_mods have changed, so we know how to version them.
 
 ### Algorithm for Module Publishing
 
