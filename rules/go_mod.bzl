@@ -31,7 +31,7 @@ def _go_mod_archive_impl(ctx):
     output_zip = ctx.actions.declare_file(ctx.attr.name + ".zip")
 
     inputs = [go_mod] + srcs
-    go_tool = ctx.executable._archive_tool
+    go_mod_tool = ctx.executable._go_mod_tool
 
     args = ctx.actions.args()
     args.add("--strip-prefix", strip_prefix)
@@ -39,13 +39,14 @@ def _go_mod_archive_impl(ctx):
     args.add("--module-path", module_path)
     args.add("--go-mod", go_mod.path)
     args.add("--version", version)
+
     for src in srcs:
         args.add("--src", src.path)
 
     ctx.actions.run(
         outputs = [output_zip],
         inputs = inputs,
-        executable = go_tool,
+        executable = go_mod_tool,
         arguments = [args],
         progress_message = "Creating Go module archive %s" % ctx.label,
     )
@@ -76,8 +77,8 @@ _go_mod = rule(
             default = "{VOLATILE_VERSION}",
             doc = "The module version (e.g., v0.1.0)",
         ),
-        "_archive_tool": attr.label(
-            default = "//archive_tool:archive_tool",
+        "_go_mod_tool": attr.label(
+            default = "//go_mod_tool:go_mod_tool",
             executable = True,
             cfg = "exec",
             doc = "Go executable to create the module archive",

@@ -6,7 +6,7 @@ go_mod(
     srcs = ["mod_b"],
     go_mod = ":go.mod",
     module_path = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_b",
-    strip_prefix = "mod_b"
+    strip_prefix = "mod_b",
 )
 
 go_library(

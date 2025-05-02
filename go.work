@@ -1,7 +1,7 @@
 go 1.23.3
 
 use (
-	./archive_tool
+	./go_mod_tool
 	./mod_a
 	./mod_b
 )
