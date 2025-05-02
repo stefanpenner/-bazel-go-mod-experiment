@@ -1,11 +1,18 @@
 load("@rules_go//go:def.bzl", "GoInfo")
+load("@aspect_bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
 
 def _go_mod_archive_impl(ctx):
-    # Inputs
     go_mod = ctx.file.go_mod
     module_path = ctx.attr.module_path
-    version = ctx.attr.version
     strip_prefix = ctx.attr.strip_prefix
+    inputs = [go_mod]
+
+    stamp = maybe_stamp(ctx)
+    # if stamping is enabled, ensure the volatile_status_file is part of the
+    # tracked inputs (todo: is that needed, since it's volatile?, presumably
+    # this is important for the stable one, but not the volatile one)
+    if stamp:
+      inputs.append(stamp.volatile_status_file)
 
     # Collect source files from go_library targets
     srcs = []
@@ -26,11 +33,11 @@ def _go_mod_archive_impl(ctx):
           srcs.extend(go_archive_data.srcs)
 
     if not srcs:
-        fail("No .go source files found in srcs: %s" % ctx.attr.srcs)
+      fail("No .go source files found in srcs: %s" % ctx.attr.srcs)
 
     output_zip = ctx.actions.declare_file(ctx.attr.name + ".zip")
 
-    inputs = [go_mod] + srcs
+    inputs = inputs + srcs
     go_mod_tool = ctx.executable._go_mod_tool
 
     args = ctx.actions.args()
@@ -38,61 +45,56 @@ def _go_mod_archive_impl(ctx):
     args.add("--output", output_zip.path)
     args.add("--module-path", module_path)
     args.add("--go-mod", go_mod.path)
-    args.add("--version", version)
+    args.add("--volatile-status-file", stamp.volatile_status_file.path)
 
     for src in srcs:
-        args.add("--src", src.path)
+      args.add("--src", src.path)
 
     ctx.actions.run(
-        outputs = [output_zip],
-        inputs = inputs,
-        executable = go_mod_tool,
-        arguments = [args],
-        progress_message = "Creating Go module archive %s" % ctx.label,
+      outputs = [output_zip],
+      inputs = inputs,
+      executable = go_mod_tool,
+      arguments = [args],
+      progress_message = "Creating Go module archive %s" % ctx.label,
     )
 
     return [DefaultInfo(files = depset([output_zip]))]
 
 _go_mod = rule(
-    implementation = _go_mod_archive_impl,
-    attrs = {
-        "go_mod": attr.label(
-            mandatory = True,
-            allow_single_file = True,
-            doc = "The go.mod file for the module",
-        ),
-        "strip_prefix": attr.string(
+  implementation = _go_mod_archive_impl,
+  attrs = dict({
+    "go_mod": attr.label(
+      mandatory = True,
+      allow_single_file = True,
+      doc = "The go.mod file for the module",
+    ),
+    "strip_prefix": attr.string(
 
-        ),
-        "srcs": attr.label_list(
-            providers = [[GoInfo], []],
-            doc = "Go source files or go_library targets to include in the module archive",
-        ),
-        "module_path": attr.string(
-            mandatory = True,
-            doc = "The module path (e.g., github.com/my_project)",
-        ),
-        "version": attr.string(
-            # TODO: make this versioning work
-            default = "{VOLATILE_VERSION}",
-            doc = "The module version (e.g., v0.1.0)",
-        ),
-        "_go_mod_tool": attr.label(
-            default = "//go_mod_tool:go_mod_tool",
-            executable = True,
-            cfg = "exec",
-            doc = "Go executable to create the module archive",
-        ),
-    },
-    doc = "Creates a Go module archive (.zip) for use with a Go proxy",
+    ),
+    "srcs": attr.label_list(
+      providers = [[GoInfo], []],
+      doc = "Go source files or go_library targets to include in the module archive",
+    ),
+    "module_path": attr.string(
+      mandatory = True,
+      doc = "The module path (e.g., github.com/my_project)",
+    ),
+    "_go_mod_tool": attr.label(
+      default = "//go_mod_tool:go_mod_tool",
+      executable = True,
+      cfg = "exec",
+      doc = "Go executable to create the module archive",
+    ),
+  }, **STAMP_ATTRS),
+  doc = "Creates a Go module archive (.zip) for use with a Go proxy",
 )
 
 def go_mod(name, go_mod, srcs, module_path, strip_prefix = None, visibility = None):
-    _go_mod(
-        name = name,
-        go_mod = go_mod,
-        srcs = srcs,
-        module_path = module_path,
-        strip_prefix = strip_prefix,
-        visibility = visibility,
-    )
+  _go_mod(
+    name = name,
+    go_mod = go_mod,
+    srcs = srcs,
+    module_path = module_path,
+    strip_prefix = strip_prefix,
+    visibility = visibility
+  )

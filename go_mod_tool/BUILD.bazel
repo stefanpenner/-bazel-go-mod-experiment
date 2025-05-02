@@ -1,10 +1,33 @@
-load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
 go_library(
     name = "go_mod_tool_lib",
-    srcs = ["main.go"],
+    srcs = [
+        "add_file_to_zip.go",
+        "cmd.go",
+        "main.go",
+        "parse_stamp_file.go",
+        "run.go",
+        "strip_path_prefix.go",
+    ],
     importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/go_mod_tool",
     visibility = ["//visibility:private"],
+    deps = ["@com_github_spf13_cobra//:cobra"],
+)
+
+go_test(
+    name = "go_mod_tool_test",
+    srcs = [
+        "add_file_to_zip_test.go",
+        "parse_stamp_file_test.go",
+        "run_test.go",
+        "strip_path_prefix_test.go",
+    ],
+    embed = [":go_mod_tool_lib"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )
 
 go_binary(
