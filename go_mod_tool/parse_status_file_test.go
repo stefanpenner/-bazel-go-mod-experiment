@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseStampFile(t *testing.T) {
+func TestParseStatusFile(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	tests := []struct {
@@ -27,16 +27,13 @@ BUILD_TIMESTAMP 2024-03-20T12:00:00Z`,
 				"BUILD_SCM_HASH":   "abc123",
 				"BUILD_SCM_STATUS": "clean",
 				"BUILD_TIMESTAMP":  "2024-03-20T12:00:00Z",
-				"VOLATILE_VERSION": "__unversioned__",
 			},
 			wantErr: false,
 		},
 		{
 			name:    "empty file",
 			content: ``,
-			want: map[string]string{
-				"VOLATILE_VERSION": "__unversioned__",
-			},
+			want:    map[string]string{},
 			wantErr: false,
 		},
 		{
@@ -49,7 +46,6 @@ BUILD_SCM_STATUS clean
 			want: map[string]string{
 				"BUILD_SCM_HASH":   "abc123",
 				"BUILD_SCM_STATUS": "clean",
-				"VOLATILE_VERSION": "__unversioned__",
 			},
 			wantErr: false,
 		},
@@ -72,7 +68,6 @@ BUILD_SCM_STATUS clean  `,
 			want: map[string]string{
 				"BUILD_SCM_HASH":   "abc123",
 				"BUILD_SCM_STATUS": "clean",
-				"VOLATILE_VERSION": "__unversioned__",
 			},
 			wantErr: false,
 		},
@@ -86,7 +81,7 @@ BUILD_SCM_STATUS clean  `,
 			require.NoError(t, err, "failed to create stamp file")
 
 			// Parse the stamp file
-			got, err := parseStampFile(stampFile)
+			got, err := parseStatusFile(stampFile)
 
 			if tt.wantErr {
 				assert.Error(t, err, "expected error")
@@ -99,7 +94,7 @@ BUILD_SCM_STATUS clean  `,
 	}
 
 	t.Run("nonexistent file", func(t *testing.T) {
-		_, err := parseStampFile(filepath.Join(tmpDir, "nonexistent.txt"))
+		_, err := parseStatusFile(filepath.Join(tmpDir, "nonexistent.txt"))
 		assert.Error(t, err, "expected error for nonexistent file")
 	})
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func parseStampFile(path string) (map[string]string, error) {
+func parseStatusFile(path string) (map[string]string, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read stamp file %s: %w", path, err)
@@ -29,11 +29,6 @@ func parseStampFile(path string) (map[string]string, error) {
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
 		result[key] = value
-	}
-
-	// Default VOLATILE_VERSION to __unversioned__ if not set
-	if _, ok := result["VOLATILE_VERSION"]; !ok {
-		result["VOLATILE_VERSION"] = "__unversioned__"
 	}
 
 	return result, nil

@@ -6,7 +6,7 @@ go_library(
         "add_file_to_zip.go",
         "cmd.go",
         "main.go",
-        "parse_stamp_file.go",
+        "parse_status_file.go",
         "run.go",
         "strip_path_prefix.go",
     ],
@@ -19,7 +19,7 @@ go_test(
     name = "go_mod_tool_test",
     srcs = [
         "add_file_to_zip_test.go",
-        "parse_stamp_file_test.go",
+        "parse_status_file_test.go",
         "run_test.go",
         "strip_path_prefix_test.go",
     ],

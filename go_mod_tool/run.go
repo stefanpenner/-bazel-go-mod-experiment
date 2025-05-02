@@ -17,12 +17,17 @@ func run(cfg Config) error {
 	zw := zip.NewWriter(zipFile)
 	defer zw.Close()
 
-	stampFile, err := parseStampFile(cfg.VolatileStampFile)
+	status, err := parseStatusFile(cfg.VolatileStatusFile)
 	if err != nil {
-		return fmt.Errorf("failed to parse stamp file %s: %w", cfg.VolatileStampFile, err)
+		return fmt.Errorf("failed to parse status file %s: %w", cfg.VolatileStatusFile, err)
 	}
 
-	moduleDir := cfg.ModulePath + "@" + stampFile["VOLATILE_VERSION"]
+	version, has_version := status["VOLATILE_VERSION"]
+	// Default VOLATILE_VERSION to __unversioned__ if not set
+	if !has_version {
+		version = "__unversioned__"
+	}
+	moduleDir := cfg.ModulePath + "@" + version
 
 	if err := addFileToZip(zw, cfg.GoMod, filepath.Join(moduleDir, "go.mod")); err != nil {
 		return fmt.Errorf("failed to add go.mod to zip: %w", err)

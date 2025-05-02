@@ -24,8 +24,8 @@ func TestRun(t *testing.T) {
 	require.NoError(t, os.WriteFile(srcFile, []byte(srcContent), 0644))
 
 	stampContent := "VOLATILE_VERSION v1.0.0"
-	stampFile := filepath.Join(tmpDir, "stamp.txt")
-	require.NoError(t, os.WriteFile(stampFile, []byte(stampContent), 0644))
+	statusFile := filepath.Join(tmpDir, "stamp.txt")
+	require.NoError(t, os.WriteFile(statusFile, []byte(stampContent), 0644))
 
 	tests := []struct {
 		name        string
@@ -37,12 +37,12 @@ func TestRun(t *testing.T) {
 		{
 			name: "basic zip creation",
 			cfg: Config{
-				Output:            filepath.Join(tmpDir, "out.zip"),
-				ModulePath:        "example.com/test",
-				GoMod:             goModFile,
-				SrcFiles:          []string{srcFile},
-				VolatileStampFile: stampFile,
-				StripPrefix:       tmpDir,
+				Output:             filepath.Join(tmpDir, "out.zip"),
+				ModulePath:         "example.com/test",
+				GoMod:              goModFile,
+				SrcFiles:           []string{srcFile},
+				VolatileStatusFile: statusFile,
+				StripPrefix:        tmpDir,
 			},
 			wantFiles: []string{
 				"example.com/test@v1.0.0/go.mod",
@@ -89,7 +89,10 @@ func TestRun(t *testing.T) {
 						content, err := io.ReadAll(rc)
 						rc.Close()
 						require.NoError(t, err)
-						assert.Equal(t, wantContent, string(content), "content mismatch for %s", name)
+						gotContent := string(content)
+						if gotContent != wantContent {
+							t.Errorf("content mismatch for %s:\nwant:\n%s\ngot:\n%s", name, wantContent, gotContent)
+						}
 						break
 					}
 				}
