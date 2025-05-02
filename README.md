@@ -1,6 +1,11 @@
 ## Experimenting with Bazel-based Go Module Publishing
 
-A proof-of-concept for 100% Bazel-based Go module publishing.
+A proof-of-concept for 100% Bazel-based Go module publishing. Requiring `go_mod` rules be declared, but those go_mod rules infer the appropriate underlying edges to nested and external packages:
+
+
+![image](https://github.com/user-attachments/assets/877567a2-6d18-4ba7-86e6-b666c14d6b86)
+
+https://excalidraw.com/#json=f6YI4RFIy_ekfjJ3NBGvI,vZonSZodkQ0jZYRuVAAi4A
 
 ### Algorithm for Module Publishing
 
