@@ -8,6 +8,7 @@ https://excalidraw.com/#json=f6YI4RFIy_ekfjJ3NBGvI,vZonSZodkQ0jZYRuVAAi4A
 
 ### TODO:
 
+- [ ] can go_mod rule infer importpath from it's srcs?
 - [ ] can go_mod rule infer go.mod location, rather then hardcoding it?
 - [ ] version manifest
 - [ ] gazelle rule to generate go_mod files
