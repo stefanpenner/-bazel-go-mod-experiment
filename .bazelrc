@@ -1,4 +1,5 @@
 common --stamp
 common --workspace_status_command=./tools/workspace_status.sh
 
+common --test_output=errors
 

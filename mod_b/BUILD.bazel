@@ -9,6 +9,16 @@ go_mod(
     strip_prefix = "mod_b",
 )
 
+sh_test(
+    name = "go_mod_test",
+    srcs = ["go_mod_test.sh"],
+    data = [":go_mod"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+    env = {
+        "GO_MOD": "$(location :go_mod)",
+    },
+)
+
 go_library(
     name = "mod_b",
     srcs = ["lib.go"],
