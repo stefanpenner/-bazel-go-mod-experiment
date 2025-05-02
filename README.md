@@ -8,6 +8,8 @@ https://excalidraw.com/#json=f6YI4RFIy_ekfjJ3NBGvI,vZonSZodkQ0jZYRuVAAi4A
 
 ### TODO:
 
+
+- [ ] add a protoc codegen example as well
 - [ ] go_mod also needs to include go_libraries that reside in subpackages, and not directly referenced in the current package.
 - [ ] can go_mod rule infer importpath from it's srcs?
 - [ ] can go_mod rule infer go.mod location, rather then hardcoding it?
