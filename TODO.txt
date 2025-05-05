@@ -1,0 +1,3 @@
+- [ ] restore modern go labels (not go_library etc)
+- [ ] why aren't all the go_mod rules being generated
+- [ ] ensure the sources / filegroups are created
