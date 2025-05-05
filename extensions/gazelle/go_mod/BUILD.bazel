@@ -1,4 +1,4 @@
-load("@//rules:go_mod.bzl", "go_mod")
+load("@bazel-go-mod-experiment//rules:go_mod.bzl", "go_mod")
 load("@rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -17,8 +17,8 @@ go_library(
 )
 
 go_mod(
-    name = "tools/gazelle_go_mod",
-    srcs = ["go.mod"],
+    name = "extensions/gazelle/go_mod",
+    srcs = [],
     go_mod = ":go.mod",
-    module_path = "tools/gazelle_go_mod",
+    module_path = "extensions/gazelle/go_mod",
 )
