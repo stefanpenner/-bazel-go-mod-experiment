@@ -2,7 +2,6 @@ package go_mod
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/bazelbuild/bazel-gazelle/config"
 
@@ -54,8 +53,6 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 	// - files in child directories of go.mod should be included if they match the go.mod inclusion pattern
 	// - subpackage files need to be included (assuming they match the go.mod inclusion pattern) but will need their BUILD.bazel to have the appropriate rules for visibility setup
 
-	fmt.Printf("considering  %s\n", args.Dir)
-
 	for _, file := range args.RegularFiles {
 		if file == "go.mod" {
 			hasGoMod = true
@@ -72,7 +69,6 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 		r.SetAttr("module_path", args.Rel)
 		res.Gen = append(res.Gen, r)
 		res.Imports = append(res.Imports, []resolve.ImportSpec{})
-		fmt.Printf("- Bingo! updating: %s/BUILD.bazel \n  %v\n", args.Dir, r)
 	}
 
 	return res
