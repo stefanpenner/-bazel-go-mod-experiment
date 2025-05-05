@@ -7,6 +7,6 @@ gazelle_binary(
     languages = [
         "@bazel_gazelle//language/go",  # Built-in rule from gazelle for Golang.
         "@bazel_gazelle//language/proto",  # Built-in rule from gazelle for Protos.
-        "//tools/gazelle_go_mod",
+        "//extensions/gazelle/go_mod",
     ],
 )
