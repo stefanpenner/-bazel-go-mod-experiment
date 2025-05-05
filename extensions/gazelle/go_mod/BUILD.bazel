@@ -17,7 +17,7 @@ go_library(
 )
 
 go_mod(
-    name = "extensions/gazelle/go_mod",
+    name = "go_mod_zip",
     srcs = [],
     go_mod = ":go.mod",
     module_path = "extensions/gazelle/go_mod",

@@ -9,7 +9,7 @@ go_library(
 )
 
 go_mod(
-    name = "foo/bar",
+    name = "go_mod_zip",
     srcs = [],
     go_mod = ":go.mod",
     module_path = "foo/bar",

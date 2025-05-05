@@ -55,6 +55,7 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 	// - subpackage files need to be included (assuming they match the go.mod inclusion pattern) but will need their BUILD.bazel to have the appropriate rules for visibility setup
 
 	fmt.Printf("considering  %s\n", args.Dir)
+
 	for _, file := range args.RegularFiles {
 		if file == "go.mod" {
 			hasGoMod = true
@@ -65,7 +66,7 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 	var res language.GenerateResult
 
 	if hasGoMod {
-		r := rule.NewRule("go_mod", args.Rel)
+		r := rule.NewRule("go_mod", "go_mod_zip")
 		r.SetAttr("go_mod", ":go.mod")
 		r.SetAttr("srcs", []string{})
 		r.SetAttr("module_path", args.Rel)

@@ -1,3 +1,4 @@
+load("@bazel-go-mod-experiment//rules:go_mod.bzl", "go_mod")
 load("@rules_go//go:def.bzl", "go_library")
 
 # TODO: restore once we fix gazelle's go_mod generation
@@ -16,4 +17,11 @@ go_library(
     srcs = ["lib.go"],
     importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_b",
     visibility = ["//visibility:public"],
+)
+
+go_mod(
+    name = "go_mod_zip",
+    srcs = [],
+    go_mod = ":go.mod",
+    module_path = "mod_b",
 )
