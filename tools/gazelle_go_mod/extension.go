@@ -1,7 +1,8 @@
-package foo
+package go_mod
 
 import (
 	"flag"
+	"fmt"
 	"strings"
 
 	"github.com/bazelbuild/bazel-gazelle/config"
@@ -13,7 +14,7 @@ import (
 	"github.com/bazelbuild/bazel-gazelle/rule"
 )
 
-// GoMod is the Gazelle extension for .foo files.
+// GoMod is the Gazelle extension for go.mod files.
 type GoMod struct{}
 
 // NewLanguage creates a new instance of the GoMod extension.
@@ -47,10 +48,16 @@ func (*GoMod) Loads() []rule.LoadInfo {
 	}
 }
 
-// GenerateRules generates rules for .foo files in a directory.
+// GenerateRules generates rules for go.mod files in a directory.
 func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 	var srcs []string
+	// TODO: this actually needs to work properly:
+	// - files in child directories of go.mod should be included if they match the go.mod inclusion pattern
+	// - subpackage files need to be included (assuming they match the go.mod inclusion pattern) but will need their BUILD.bazel to have the appropriate rules for visibility setup
+
+	fmt.Printf("Generating rules for go.mod files in %s\n", args.Dir)
 	for _, file := range args.RegularFiles {
+		fmt.Printf("  - file: %s\n", file)
 		if strings.HasSuffix(file, "go.mod") {
 			srcs = append(srcs, file)
 		}
@@ -64,6 +71,7 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 		r.SetAttr("module_path", args.Rel)
 		res.Gen = append(res.Gen, r)
 		res.Imports = append(res.Imports, nil)
+		fmt.Printf("Bingo! %s %v\n", args.Dir, r)
 	}
 	return res
 }
