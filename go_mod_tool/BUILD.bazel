@@ -15,6 +15,12 @@ go_library(
     deps = ["@com_github_spf13_cobra//:go_default_library"],
 )
 
+go_binary(
+    name = "go_mod_tool",
+    embed = [":go_mod_tool_lib"],
+    visibility = ["//visibility:public"],
+)
+
 go_test(
     name = "go_mod_tool_test",
     srcs = [
@@ -25,13 +31,7 @@ go_test(
     ],
     embed = [":go_mod_tool_lib"],
     deps = [
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
-)
-
-go_binary(
-    name = "go_mod_tool",
-    embed = [":go_mod_tool_lib"],
-    visibility = ["//visibility:public"],
 )
