@@ -1,13 +1,4 @@
 load("@rules_go//go:def.bzl", "go_library")
-load("//rules:go_mod.bzl", "go_mod")
-
-go_mod(
-    name = "go_mod",
-    srcs = ["mod_b"],
-    go_mod = ":go.mod",
-    module_path = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_b",
-    strip_prefix = "mod_b",
-)
 
 sh_test(
     name = "go_mod_test",

@@ -1,5 +1,12 @@
-load("@gazelle//:def.bzl", "gazelle")
+# load("@gazelle//:def.bzl", "gazelle")
 
-gazelle(
+load("@bazel_gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle_binary")
+
+gazelle_binary(
     name = "gazelle",
+    languages = [
+        "@bazel_gazelle//language/go",  # Built-in rule from gazelle for Golang.
+        "@bazel_gazelle//language/proto",  # Built-in rule from gazelle for Protos.
+        "//tools/gazelle_go_mod",
+    ],
 )

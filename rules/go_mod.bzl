@@ -16,8 +16,15 @@ def _go_mod_archive_impl(ctx):
 
     # Collect source files from go_library targets
     srcs = []
+
+    print("ctx.attr.srcs", ctx.attr.srcs)
     for src in ctx.attr.srcs:
-      go_info = src[GoInfo]
+      if GoInfo in src:
+          go_info = src[GoInfo]
+          print("addings srcs of", src)
+      else:
+          print("skipping srcs of", src)
+          continue
 
       # append direct sources
       srcs.extend(go_info.srcs)
@@ -27,6 +34,7 @@ def _go_mod_archive_impl(ctx):
         # dep.data is GoArchiveData provider
         go_archive_data = dep.data
 
+        print("candidate", go_archive_data.importpath)
         # include include deps who have an import path that contains the
         # current module_path
         if go_archive_data.importpath.startswith(module_path):
@@ -38,6 +46,7 @@ def _go_mod_archive_impl(ctx):
     output_zip = ctx.actions.declare_file(ctx.attr.name + ".zip")
 
     inputs = inputs + srcs
+    print("srcs:", srcs)
     go_mod_tool = ctx.executable._go_mod_tool
 
     args = ctx.actions.args()
@@ -49,7 +58,6 @@ def _go_mod_archive_impl(ctx):
 
     for src in srcs:
       args.add("--src", src.path)
-
     ctx.actions.run(
       outputs = [output_zip],
       inputs = inputs,
