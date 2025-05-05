@@ -3,7 +3,11 @@ load("//rules:go_mod.bzl", "go_mod")
 
 go_mod(
     name = "go_mod",
-    srcs = ["mod_a_lib"],
+    srcs = [
+        "//mod_a",
+        # "//mod_a/baz",
+        "//mod_b",
+    ],
     go_mod = ":go.mod",
     module_path = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_a",
     strip_prefix = "mod_a",

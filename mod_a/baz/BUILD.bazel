@@ -1,0 +1,11 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "baz",
+    srcs = [
+        "banana.go",
+        "baz.go",
+    ],
+    importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_a/baz",
+    visibility = ["//visibility:public"],
+)
