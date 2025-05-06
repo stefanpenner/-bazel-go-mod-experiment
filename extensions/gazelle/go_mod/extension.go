@@ -1,31 +1,29 @@
 package go_mod
 
 import (
-	"flag"
-
-	"github.com/bazelbuild/bazel-gazelle/config"
-
-	"github.com/bazelbuild/bazel-gazelle/label"
 	"github.com/bazelbuild/bazel-gazelle/language"
-	"github.com/bazelbuild/bazel-gazelle/repo"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
 	"github.com/bazelbuild/bazel-gazelle/rule"
 )
 
-// GoMod is the Gazelle extension for go.mod files.
-type GoMod struct{}
+// to understand whats going on here please read:
+// https://github.com/bazel-contrib/bazel-gazelle/blob/f4f1b2cdee4ac7e452bcf66cadb33429d377965f/language/lang.go#L63
 
-// NewLanguage creates a new instance of the GoMod extension.
+// GoMod is the Gazelle extension for go.mod files.
+type GoMod struct {
+	language.BaseLang
+	// see: https://github.com/bazel-contrib/bazel-gazelle/blob/master/language/base.go
+}
+
 func NewLanguage() language.Language {
 	return &GoMod{}
 }
 
-// Name returns the name of the language.
 func (*GoMod) Name() string {
 	return "go_mod"
 }
 
-// Kinds returns the kinds of rules this extension generates.
+// returns the kinds of rules this extension generates.
 func (*GoMod) Kinds() map[string]rule.KindInfo {
 	return map[string]rule.KindInfo{
 		"go_mod": {
@@ -36,7 +34,7 @@ func (*GoMod) Kinds() map[string]rule.KindInfo {
 	}
 }
 
-// Loads returns the Starlark load statements needed for the rules.
+// returns the Starlark load statements needed for the rules.
 func (*GoMod) Loads() []rule.LoadInfo {
 	return []rule.LoadInfo{
 		{
@@ -46,7 +44,7 @@ func (*GoMod) Loads() []rule.LoadInfo {
 	}
 }
 
-// GenerateRules generates rules for go.mod files in a directory.
+// generates rules for go.mod files in a given bazel package
 func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 	var hasGoMod bool
 	// TODO: this actually needs to work properly:
@@ -73,30 +71,3 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 
 	return res
 }
-
-// Configure is a no-op for this simple extension.
-func (*GoMod) Configure(c *config.Config, rel string, f *rule.File) {
-	// ... your logic ...
-}
-
-// Imports is a no-op since we're not resolving dependencies.
-func (*GoMod) Imports(c *config.Config, r *rule.Rule, f *rule.File) []resolve.ImportSpec {
-	return nil
-}
-
-// Other methods required by the interface (stubs for simplicity).
-func (*GoMod) Fix(c *config.Config, f *rule.File) {
-	// ... your logic ...
-}
-
-func (*GoMod) KnownDirectives() []string { return nil }
-func (*GoMod) Resolve(c *config.Config, ix *resolve.RuleIndex, rc *repo.RemoteCache, r *rule.Rule, imports interface{}, from label.Label) {
-}
-
-func (*GoMod) CheckFlags(f *flag.FlagSet, c *config.Config) error {
-	return nil
-}
-
-func (*GoMod) Embeds(r *rule.Rule, from label.Label) []label.Label { return nil }
-
-func (*GoMod) RegisterFlags(fs *flag.FlagSet, cmd string, c *config.Config) {}
