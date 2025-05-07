@@ -44,8 +44,8 @@ func (*ModuleFiles) Kinds() map[string]rule.KindInfo {
 
 var IGNORED_FILES = map[string]bool{
 	".DS_Store":   true,
-	"BUILD.bazel": true,
 	".gitignore":  true,
+	"BUILD.bazel": true,
 }
 
 // Note: This modifies the input, due to the use of slices.DeleteFunc
