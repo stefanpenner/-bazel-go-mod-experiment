@@ -10,7 +10,16 @@ go_library(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [],
+    srcs = [":__files__"],
     go_mod = ":go.mod",
     module_path = "foo/bar",
+)
+
+filegroup(
+    name = "_pkg_",
+    srcs = [
+        "bar.go",
+        "go.mod",
+    ],
+    visibility = ["//:__subpackages__"],
 )

@@ -1,5 +1,5 @@
 filegroup(
     name = "_pkg_",
-    srcs = ["go_mod.bzl"],
+    srcs = ["ci.yaml"],
     visibility = ["//:__subpackages__"],
 )

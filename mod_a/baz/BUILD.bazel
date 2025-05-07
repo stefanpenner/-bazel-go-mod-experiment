@@ -9,3 +9,12 @@ go_library(
     importpath = "github.com/stefanpenner/-bazel-go-mod-experiment/mod_a/baz",
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "_pkg_",
+    srcs = [
+        "banana.go",
+        "baz.go",
+    ],
+    visibility = ["//:__subpackages__"],
+)

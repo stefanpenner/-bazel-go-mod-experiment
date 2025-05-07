@@ -20,7 +20,23 @@ go_binary(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [],
+    srcs = [
+        ":__files__",
+        "//mod_a/baz:__files__",
+        "//mod_a/foo:__files__",
+    ],
     go_mod = ":go.mod",
     module_path = "mod_a",
+)
+
+filegroup(
+    name = "_pkg_",
+    srcs = [
+        "go.mod",
+        "go.sum",
+        "main.go",
+        "//mod_a/baz:_pkg_",
+        "//mod_a/foo:_pkg_",
+    ],
+    visibility = ["//:__subpackages__"],
 )

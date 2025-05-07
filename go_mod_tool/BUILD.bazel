@@ -39,7 +39,26 @@ go_test(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [],
+    srcs = [":__files__"],
     go_mod = ":go.mod",
     module_path = "go_mod_tool",
+)
+
+filegroup(
+    name = "_pkg_",
+    srcs = [
+        "add_file_to_zip.go",
+        "add_file_to_zip_test.go",
+        "cmd.go",
+        "go.mod",
+        "go.sum",
+        "main.go",
+        "parse_status_file.go",
+        "parse_status_file_test.go",
+        "run.go",
+        "run_test.go",
+        "strip_path_prefix.go",
+        "strip_path_prefix_test.go",
+    ],
+    visibility = ["//:__subpackages__"],
 )

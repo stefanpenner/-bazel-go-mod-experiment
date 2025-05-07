@@ -1,5 +1,3 @@
-# load("@gazelle//:def.bzl", "gazelle")
-
 load("@bazel_gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle_binary")
 
 gazelle_binary(
@@ -7,6 +5,29 @@ gazelle_binary(
     languages = [
         "@bazel_gazelle//language/go",  # Built-in rule from gazelle for Golang.
         "@bazel_gazelle//language/proto",  # Built-in rule from gazelle for Protos.
-        "//extensions/gazelle/go_mod",
+        "//gazelle/languages/module_files",
+        # "//gazelle/languages/go_mod",
     ],
+)
+
+filegroup(
+    name = "_pkg_",
+    srcs = [
+        "MODULE.bazel",
+        "MODULE.bazel.lock",
+        "README.md",
+        "TODO.txt",
+        "go.work",
+        "go.work.sum",
+        "//.github/workflows:_pkg_",
+        "//foo/bar:_pkg_",
+        "//gazelle/languages/go_mod:_pkg_",
+        "//gazelle/languages/module_files:_pkg_",
+        "//go_mod_tool:_pkg_",
+        "//mod_a:_pkg_",
+        "//mod_b:_pkg_",
+        "//rules:_pkg_",
+        "//tools:_pkg_",
+    ],
+    visibility = ["//:__subpackages__"],
 )

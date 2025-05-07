@@ -1,6 +1,9 @@
 package go_mod
 
 import (
+	"path"
+	"slices"
+
 	"github.com/bazelbuild/bazel-gazelle/language"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
 	"github.com/bazelbuild/bazel-gazelle/rule"
@@ -46,28 +49,29 @@ func (*GoMod) Loads() []rule.LoadInfo {
 
 // generates rules for go.mod files in a given bazel package
 func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult {
-	var hasGoMod bool
-	// TODO: this actually needs to work properly:
-	// - files in child directories of go.mod should be included if they match the go.mod inclusion pattern
-	// - subpackage files need to be included (assuming they match the go.mod inclusion pattern) but will need their BUILD.bazel to have the appropriate rules for visibility setup
-
-	for _, file := range args.RegularFiles {
-		if file == "go.mod" {
-			hasGoMod = true
-			break
-		}
-	}
-
 	var res language.GenerateResult
 
-	if hasGoMod {
-		r := rule.NewRule("go_mod", "go_mod_zip")
-		r.SetAttr("go_mod", ":go.mod")
-		r.SetAttr("srcs", []string{})
-		r.SetAttr("module_path", args.Rel)
-		res.Gen = append(res.Gen, r)
-		res.Imports = append(res.Imports, []resolve.ImportSpec{})
+	if !slices.Contains(args.RegularFiles, "go.mod") {
+		// no go.mod, no work to be done
+		return res
 	}
+
+	// __files__ is provided by gazelle/languages/module_files
+	srcs := []string{":__files__"}
+
+	for _, f := range args.Subdirs {
+		pkg := path.Join(args.Rel, f)
+		srcs = append(srcs, "//"+pkg+":__files__")
+	}
+
+	r := rule.NewRule("go_mod", "go_mod_zip")
+
+	r.SetAttr("go_mod", ":go.mod")
+	r.SetAttr("srcs", srcs)
+	r.SetAttr("module_path", args.Rel)
+
+	res.Gen = append(res.Gen, r)
+	res.Imports = append(res.Imports, []resolve.ImportSpec{})
 
 	return res
 }

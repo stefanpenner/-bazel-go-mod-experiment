@@ -21,7 +21,19 @@ go_library(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [],
+    srcs = [":__files__"],
     go_mod = ":go.mod",
     module_path = "mod_b",
+)
+
+filegroup(
+    name = "_pkg_",
+    srcs = [
+        "README.md",
+        "go.mod",
+        "go.sum",
+        "go_mod_test.sh",
+        "lib.go",
+    ],
+    visibility = ["//:__subpackages__"],
 )

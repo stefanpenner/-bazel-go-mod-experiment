@@ -1,0 +1,31 @@
+load("@bazel-go-mod-experiment//rules:go_mod.bzl", "go_mod")
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "module_files",
+    srcs = ["extension.go"],
+    importpath = "bazel-go-mod-experiment/gazelle/languages/module_files",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_gazelle//language:go_default_library",
+        "@bazel_gazelle//resolve:go_default_library",
+        "@bazel_gazelle//rule:go_default_library",
+    ],
+)
+
+go_mod(
+    name = "go_mod_zip",
+    srcs = [":__files__"],
+    go_mod = ":go.mod",
+    module_path = "gazelle/languages/module_files",
+)
+
+filegroup(
+    name = "_pkg_",
+    srcs = [
+        "extension.go",
+        "go.mod",
+        "go.sum",
+    ],
+    visibility = ["//:__subpackages__"],
+)
