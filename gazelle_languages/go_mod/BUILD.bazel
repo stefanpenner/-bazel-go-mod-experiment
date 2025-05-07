@@ -15,7 +15,7 @@ go_library(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [":__pkg__"],
+    srcs = [":_pkg_"],
     go_mod = ":go.mod",
     module_path = "extensions/gazelle/go_mod",
 )
