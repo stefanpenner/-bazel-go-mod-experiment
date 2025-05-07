@@ -5,8 +5,8 @@ gazelle_binary(
     languages = [
         "@bazel_gazelle//language/go",  # Built-in rule from gazelle for Golang.
         "@bazel_gazelle//language/proto",  # Built-in rule from gazelle for Protos.
-        "//gazelle/languages/module_files",
-        # "//gazelle/languages/go_mod",
+        "//gazelle_languages/module_files",
+        "//gazelle_languages/go_mod",
     ],
 )
 
@@ -21,8 +21,8 @@ filegroup(
         "go.work.sum",
         "//.github/workflows:_pkg_",
         "//foo/bar:_pkg_",
-        "//gazelle/languages/go_mod:_pkg_",
-        "//gazelle/languages/module_files:_pkg_",
+        "//gazelle_languages/go_mod:_pkg_",
+        "//gazelle_languages/module_files:_pkg_",
         "//go_mod_tool:_pkg_",
         "//mod_a:_pkg_",
         "//mod_b:_pkg_",

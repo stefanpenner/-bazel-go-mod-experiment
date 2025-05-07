@@ -4,5 +4,6 @@ use (
 	./go_mod_tool
 	./mod_a
 	./mod_b
-	./gazelle/languages/go_mod
+	./gazelle_languages/go_mod
+	./gazelle_languages/module_files
 )
