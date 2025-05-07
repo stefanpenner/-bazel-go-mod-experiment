@@ -23,6 +23,7 @@ go_mod(
     srcs = [":_pkg_"],
     go_mod = ":go.mod",
     module_path = "mod_b",
+    strip_prefix = "mod_b",
 )
 
 filegroup(
