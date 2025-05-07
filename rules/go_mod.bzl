@@ -25,7 +25,7 @@ def _go_mod_archive_impl(ctx):
     go_mod_tool = ctx.executable._go_mod_tool
 
     args = ctx.actions.args()
-    args.add("--strip-prefix", strip_prefix)
+    args.add("--strip-prefix", ctx.label.package)
     args.add("--output", output_zip.path)
     args.add("--module-path", module_path)
     args.add("--go-mod", go_mod.path)
@@ -75,12 +75,11 @@ _go_mod = rule(
   doc = "Creates a Go module archive (.zip) for use with a Go proxy",
 )
 
-def go_mod(name, go_mod, srcs, module_path, strip_prefix = None, visibility = None):
+def go_mod(name, go_mod, srcs, module_path, visibility = None):
   _go_mod(
     name = name,
     go_mod = go_mod,
     srcs = srcs,
     module_path = module_path,
-    strip_prefix = strip_prefix,
     visibility = visibility
   )
