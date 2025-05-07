@@ -1,5 +1,8 @@
 filegroup(
     name = "_pkg_",
-    srcs = ["workspace_status.sh"],
+    srcs = [
+        "BUILD.bazel",
+        "workspace_status.sh",
+    ],
     visibility = ["//:__subpackages__"],
 )

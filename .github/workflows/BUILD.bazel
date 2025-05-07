@@ -1,5 +1,8 @@
 filegroup(
     name = "_pkg_",
-    srcs = ["ci.yaml"],
+    srcs = [
+        "BUILD.bazel",
+        "ci.yaml",
+    ],
     visibility = ["//:__subpackages__"],
 )

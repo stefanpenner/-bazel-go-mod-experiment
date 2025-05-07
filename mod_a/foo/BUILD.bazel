@@ -13,6 +13,7 @@ go_library(
 filegroup(
     name = "_pkg_",
     srcs = [
+        "BUILD.bazel",
         "bar.go",
         "foo.go",
     ],

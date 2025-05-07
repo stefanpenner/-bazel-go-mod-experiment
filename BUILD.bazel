@@ -13,6 +13,7 @@ gazelle_binary(
 filegroup(
     name = "_pkg_",
     srcs = [
+        "BUILD.bazel",
         "MODULE.bazel",
         "MODULE.bazel.lock",
         "README.md",
@@ -20,13 +21,9 @@ filegroup(
         "go.work",
         "go.work.sum",
         "//.github/workflows:_pkg_",
-        "//foo/bar:_pkg_",
         "//gazelle_languages/go_mod:_pkg_",
-        "//gazelle_languages/module_files:_pkg_",
         "//go_mod_tool:_pkg_",
-        "//mod_a:_pkg_",
         "//mod_b:_pkg_",
-        "//rules:_pkg_",
         "//tools:_pkg_",
     ],
     visibility = ["//:__subpackages__"],

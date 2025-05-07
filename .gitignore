@@ -1,2 +1,3 @@
-bazel-*
+tebazel-*
 .DS_Store
+bazel-*

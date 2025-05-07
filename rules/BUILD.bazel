@@ -1,5 +1,8 @@
 filegroup(
     name = "_pkg_",
-    srcs = ["go_mod.bzl"],
+    srcs = [
+        "BUILD.bazel",
+        "go_mod.bzl",
+    ],
     visibility = ["//:__subpackages__"],
 )

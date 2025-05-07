@@ -16,12 +16,12 @@ import (
 // This is for bzlmods & go.mods for now, but we may want to decouple in the future.
 type ModuleFiles struct {
 	language.BaseLang  // see: https://github.com/bazel-contrib/bazel-gazelle/blob/master/language/base.go
-	visitedModuleFiles map[string]struct{}
+	visitedModuleFiles *OrderedSet[string]
 }
 
 func NewLanguage() language.Language {
 	return &ModuleFiles{
-		visitedModuleFiles: make(map[string]struct{}),
+		visitedModuleFiles: NewOrderedSet[string](),
 	}
 }
 
@@ -43,17 +43,21 @@ func (*ModuleFiles) Kinds() map[string]rule.KindInfo {
 }
 
 var IGNORED_FILES = map[string]bool{
-	".DS_Store":   true,
-	".gitignore":  true,
-	"BUILD.bazel": true,
+	".DS_Store":  true,
+	".gitignore": true,
 }
 
 // Note: This modifies the input, due to the use of slices.DeleteFunc
 // If you don't want the behavior, please clone the input prior to passing it in
-func deleteUnwanted(entries []string) []string {
+func deleteUnwanted(unwanted map[string]bool, entries []string) []string {
 	return slices.DeleteFunc(entries, func(f string) bool {
-		_, ignored := IGNORED_FILES[f]
-		return strings.HasPrefix(f, ".") || ignored
+		_, ignored := unwanted[f]
+
+		if ignored {
+			return true
+		}
+
+		return strings.HasPrefix(f, ".")
 	})
 }
 
@@ -73,9 +77,9 @@ var (
 func (mf *ModuleFiles) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 	// Generate the filegroup for this package if it has the hasRelevantFiles
 	var res language.GenerateResult
-	srcs := deleteUnwanted(slices.Clone(args.RegularFiles))
+	srcs := NewOrderedSetFromSlice[string](deleteUnwanted(IGNORED_FILES, slices.Clone(args.RegularFiles)))
 
-	if len(srcs) > 0 {
+	if srcs.Len() > 0 {
 		r := rule.NewRule("filegroup", TARGET_NAME)
 
 		// have ancestor BUILD.bazel files track descended ones, even if they are
@@ -88,24 +92,24 @@ func (mf *ModuleFiles) GenerateRules(args language.GenerateArgs) language.Genera
 		//
 		// note: I'm not sure a dictionary or array is better here, based on the
 		// access pattern it's probably a wash, but I'll keep an eye on things.
-		for rel := range mf.visitedModuleFiles {
+
+		mf.visitedModuleFiles.Range(func(rel string) {
 			if strings.HasPrefix(rel, args.Rel) {
 				// construct the label
-				srcs = append(srcs, "//"+rel+":"+TARGET_NAME)
-
+				srcs.Add("//" + rel + ":" + TARGET_NAME)
 				// Ok we used it, so we can delete it
-				delete(mf.visitedModuleFiles, rel)
+				mf.visitedModuleFiles.Remove(rel)
 			}
-		}
+		})
 
-		r.SetAttr("srcs", srcs)
+		r.SetAttr("srcs", srcs.ToSlice())
 		r.SetAttr("visibility", []string{"//:__subpackages__"})
 		res.Gen = append(res.Gen, r)
 		res.Imports = append(res.Imports, []resolve.ImportSpec{})
 
 		// Add this Rel, so it's ancestor can use it.
 		// note: this relies on the fact that gazelle is using a depth-first post-order traversal
-		mf.visitedModuleFiles[args.Rel] = struct{}{}
+		mf.visitedModuleFiles.Add(args.Rel)
 	}
 
 	return res

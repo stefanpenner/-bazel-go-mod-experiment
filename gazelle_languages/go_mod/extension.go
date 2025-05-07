@@ -56,12 +56,12 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 		return res
 	}
 
-	// __files__ is provided by gazelle/languages/module_files
-	srcs := []string{":__files__"}
+	// _pkg_ is provided by gazelle/languages/module_files
+	srcs := []string{":_pkg_"}
 
 	for _, f := range args.Subdirs {
 		pkg := path.Join(args.Rel, f)
-		srcs = append(srcs, "//"+pkg+":__files__")
+		srcs = append(srcs, "//"+pkg+":_pkg_")
 	}
 
 	r := rule.NewRule("go_mod", "go_mod_zip")
