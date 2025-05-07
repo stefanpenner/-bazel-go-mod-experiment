@@ -1,11 +1,9 @@
-package go_mod
+package module_files
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 
-	"github.com/bazelbuild/bazel-gazelle/config"
 	"github.com/bazelbuild/bazel-gazelle/language"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
 	"github.com/bazelbuild/bazel-gazelle/rule"
@@ -71,14 +69,8 @@ var (
 	_ language.Language = &ModuleFiles{}
 )
 
-func (mf *ModuleFiles) Configure(c *config.Config, rel string, f *rule.File) {
-	fmt.Printf("configure rel: %s\n", rel)
-}
-
 // generates the files
 func (mf *ModuleFiles) GenerateRules(args language.GenerateArgs) language.GenerateResult {
-	fmt.Printf("gen: %s\n", args.Rel)
-	fmt.Printf("config.Exts: %v\n", args.Config.Exts["go"])
 	// Generate the filegroup for this package if it has the hasRelevantFiles
 	var res language.GenerateResult
 	srcs := deleteUnwanted(slices.Clone(args.RegularFiles))
