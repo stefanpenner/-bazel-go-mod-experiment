@@ -1,16 +1,15 @@
 load("@bazel-go-mod-experiment//rules:go_mod.bzl", "go_mod")
 load("@rules_go//go:def.bzl", "go_library")
 
-# TODO: restore once we fix gazelle's go_mod generation
-# sh_test(
-#     name = "go_mod_test",
-#     srcs = ["go_mod_test.sh"],
-#     data = [":go_mod"],
-#     env = {
-#         "GO_MOD": "$(location :go_mod)",
-#     },
-#     deps = ["@bazel_tools//tools/bash/runfiles"],
-# )
+sh_test(
+    name = "go_mod_test",
+    srcs = ["go_mod_test.sh"],
+    data = [":go_mod_zip"],
+    env = {
+        "GO_MOD": "$(location :go_mod_zip)",
+    },
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
 
 go_library(
     name = "mod_b",
