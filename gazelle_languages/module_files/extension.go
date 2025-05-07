@@ -77,7 +77,7 @@ var (
 func (mf *ModuleFiles) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 	// Generate the filegroup for this package if it has the hasRelevantFiles
 	var res language.GenerateResult
-	srcs := NewOrderedSetFromSlice[string](deleteUnwanted(IGNORED_FILES, slices.Clone(args.RegularFiles)))
+	srcs := NewOrderedSetFromSlice(deleteUnwanted(IGNORED_FILES, slices.Clone(args.RegularFiles)))
 
 	if srcs.Len() > 0 {
 		r := rule.NewRule("filegroup", TARGET_NAME)
