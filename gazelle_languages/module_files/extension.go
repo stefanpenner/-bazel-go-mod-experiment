@@ -78,13 +78,19 @@ func (mf *ModuleFiles) GenerateRules(args language.GenerateArgs) language.Genera
 	if len(srcs) > 0 {
 		r := rule.NewRule("filegroup", TARGET_NAME)
 
-		// Remove all the files that have already been added to the filegroup
+		// have ancestor BUILD.bazel files track descended ones, even if they are
+		// nested several directories deep. This avoids needing a BUILD.bazel at
+		// every level
+		//
 		// note: this relies on gazelles depth-first post-order traversal
+		//
 		// note: I'm not sure a dictionary or array is better here, based on the
 		// access pattern it's probably a wash, but I'll keep an eye on things.
 		for rel := range mf.visitedModuleFiles {
 			if strings.HasPrefix(rel, args.Rel) {
+				// construct the label
 				srcs = append(srcs, "//"+rel+":"+TARGET_NAME)
+
 				// Ok we used it, so we can delete it
 				delete(mf.visitedModuleFiles, rel)
 			}
