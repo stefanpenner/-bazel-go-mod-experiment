@@ -60,6 +60,17 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 	srcs := []string{":_pkg_"}
 
 	for _, f := range args.Subdirs {
+		// TODO: this can cause a crash today for various reasons including: when
+		// module_files ignores a folder because it contains module_file_exclude
+		// files The solution is to either, or the folder is empty...
+		//
+		// This will require some additional investigation, but I'll leave some
+		// notes for myself:
+		//
+		// * combine module_files and go_mod - this currently preferred, but knowing when
+		//   to generate the child filegroups because they are contained by a go.mod
+		//   is unclear to me
+		// * make go_mod be able to cross-resolve with module_files
 		pkg := path.Join(args.Rel, f)
 		srcs = append(srcs, "//"+pkg+":_pkg_")
 	}
