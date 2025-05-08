@@ -10,6 +10,7 @@ go_library(
     importpath = "bazel-go-mod-experiment/gazelle/languages/module_files",
     visibility = ["//visibility:public"],
     deps = [
+        "@bazel_gazelle//config:go_default_library",
         "@bazel_gazelle//language:go_default_library",
         "@bazel_gazelle//resolve:go_default_library",
         "@bazel_gazelle//rule:go_default_library",
@@ -18,7 +19,10 @@ go_library(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [":_pkg_"],
+    srcs = [
+        ":_pkg_",
+        "//gazelle_languages/module_files/foo:_pkg_",
+    ],
     go_mod = ":go.mod",
     module_path = "gazelle/languages/module_files",
 )

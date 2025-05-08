@@ -1,9 +1,10 @@
 package module_files
 
 import (
-	"slices"
+	"path/filepath"
 	"strings"
 
+	"github.com/bazelbuild/bazel-gazelle/config"
 	"github.com/bazelbuild/bazel-gazelle/language"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
 	"github.com/bazelbuild/bazel-gazelle/rule"
@@ -42,42 +43,65 @@ func (*ModuleFiles) Kinds() map[string]rule.KindInfo {
 	}
 }
 
-var IGNORED_FILES = map[string]bool{
-	".DS_Store":  true,
-	".gitignore": true,
-}
-
-// Note: This modifies the input, due to the use of slices.DeleteFunc
-// If you don't want the behavior, please clone the input prior to passing it in
-func deleteUnwanted(unwanted map[string]bool, entries []string) []string {
-	return slices.DeleteFunc(entries, func(f string) bool {
-		_, ignored := unwanted[f]
-
-		if ignored {
-			return true
-		}
-
-		return strings.HasPrefix(f, ".")
-	})
-}
-
-// Add config struct for tracking packages and subdirs
-
-type ModuleFilesConfig struct {
-	Packages map[string]bool     // rel path -> is package
-	Subdirs  map[string][]string // rel path -> subdirs
-}
-
 // Register FinishableLanguage interface
 var (
 	_ language.Language = &ModuleFiles{}
 )
 
+func (mf *ModuleFiles) KnownDirectives() []string {
+	return []string{"module_files_exclude"}
+}
+
+func (mf *ModuleFiles) Configure(c *config.Config, rel string, f *rule.File) {
+	if f == nil {
+		return
+	}
+
+	// some sensible defaults
+	patterns := []string{".DS_Store", ".bazelignore", ".gitignore", ".bazelrc"}
+	if v, ok := c.Exts["module_files_exclude"].([]string); ok {
+		patterns = v
+	}
+	for _, d := range f.Directives {
+		if d.Key == "module_files_exclude" {
+			patterns = append(patterns, strings.TrimSpace(d.Value))
+		}
+	}
+
+	c.Exts["module_files_exclude"] = patterns
+}
+
+// Helper to filter files for our module_files_exclude directive:
+// # gazelle:module_files_exclude patterns
+// Otherwise we rely on gazelle's default inclusive/e
+func filterModuleFiles(files []string, patterns []string) []string {
+	if len(patterns) == 0 {
+		return files
+	}
+	filtered := []string{}
+	for _, f := range files {
+		ignore := false
+		for _, pat := range patterns {
+			if matched, _ := filepath.Match(pat, f); matched {
+				ignore = true
+				break
+			}
+		}
+		if !ignore {
+			filtered = append(filtered, f)
+		}
+	}
+	return filtered
+}
+
 // generates the files
 func (mf *ModuleFiles) GenerateRules(args language.GenerateArgs) language.GenerateResult {
-	// Generate the filegroup for this package if it has the hasRelevantFiles
 	var res language.GenerateResult
-	srcs := NewOrderedSetFromSlice(deleteUnwanted(IGNORED_FILES, slices.Clone(args.RegularFiles)))
+
+	patterns, _ := args.Config.Exts["module_files_exclude"].([]string)
+	files := filterModuleFiles(args.RegularFiles, patterns)
+
+	srcs := NewOrderedSetFromSlice(files)
 
 	if srcs.Len() > 0 {
 		r := rule.NewRule("filegroup", TARGET_NAME)

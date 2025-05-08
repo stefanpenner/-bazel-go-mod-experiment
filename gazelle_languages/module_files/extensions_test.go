@@ -16,7 +16,7 @@ func TestModuleFiles_BasicGenerateRules(t *testing.T) {
 	args := language.GenerateArgs{
 		Config:       cfg,
 		Rel:          "foo/bar",
-		RegularFiles: []string{"file.go", "BUILD.bazel", "go.mod", ".DS_Store"},
+		RegularFiles: []string{"file.go", "BUILD.bazel", "go.mod"},
 	}
 
 	res := ext.GenerateRules(args)
@@ -114,4 +114,45 @@ func TestModuleFiles_GenerateRules_Advanced(t *testing.T) {
 
 	// we should have visited foo/bar/alpha, foo/bar/beta, and foo, but since foo contains foo/bar/{alpha,beta} we expect the contained packages to be removed
 	assert.Equal(t, []string{"foo"}, ext.visitedModuleFiles.ToSlice())
+}
+
+func TestFilterModuleFiles(t *testing.T) {
+	t.Run("no patterns returns all files", func(t *testing.T) {
+		files := []string{"a.go", "b.go", "c.txt"}
+		patterns := []string{}
+		got := filterModuleFiles(files, patterns)
+		assert.Equal(t, files, got)
+	})
+
+	t.Run("single pattern excludes matching files", func(t *testing.T) {
+		files := []string{"a.go", "b.go", "c.txt"}
+		patterns := []string{"*.txt"}
+		want := []string{"a.go", "b.go"}
+		got := filterModuleFiles(files, patterns)
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("multiple patterns exclude all matches", func(t *testing.T) {
+		files := []string{"a.go", "b.go", "c.txt", "d.md"}
+		patterns := []string{"*.txt", "*.md"}
+		want := []string{"a.go", "b.go"}
+		got := filterModuleFiles(files, patterns)
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("pattern matches no files", func(t *testing.T) {
+		files := []string{"a.go", "b.go"}
+		patterns := []string{"*.txt"}
+		want := []string{"a.go", "b.go"}
+		got := filterModuleFiles(files, patterns)
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("all files excluded", func(t *testing.T) {
+		files := []string{"a.go", "b.go"}
+		patterns := []string{"*.go"}
+		want := []string{}
+		got := filterModuleFiles(files, patterns)
+		assert.Equal(t, want, got)
+	})
 }
