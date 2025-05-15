@@ -1,10 +1,14 @@
 package module_files
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/bazelbuild/bazel-gazelle/config"
 	"github.com/bazelbuild/bazel-gazelle/language"
+	"github.com/bazelbuild/bazel-gazelle/rule"
+	"github.com/bazelbuild/bazel-gazelle/testtools"
+	"github.com/bazelbuild/bazel-gazelle/walk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -155,4 +159,52 @@ func TestFilterModuleFiles(t *testing.T) {
 		got := filterModuleFiles(files, patterns)
 		assert.Equal(t, want, got)
 	})
+}
+
+func TestModuleFiles_EnsureCustomFileExcludeDirectivesWork(t *testing.T) {
+	files := []testtools.FileSpec{
+		{Path: "BUILD.bazel", Content: `# gazelle:module_files_exclude *.txt`},
+		{Path: "foo.go", Content: `package foo`},
+		{Path: "bar.txt", Content: `text`},
+	}
+
+	dir, cleanup := testtools.CreateFiles(t, files)
+	defer cleanup()
+
+	ext := NewLanguage().(*ModuleFiles)
+
+	cfg := config.New()
+	cfg.RepoRoot = dir
+	cfg.WorkDir = dir
+
+	flagSet := flag.NewFlagSet("test", flag.PanicOnError)
+
+	wext := &walk.Configurer{}
+
+	cexts := []config.Configurer{ext, wext}
+
+	for _, config := range cexts {
+		config.RegisterFlags(flagSet, "something", cfg)
+		config.CheckFlags(flagSet, cfg)
+	}
+
+	dirs := []string{dir}
+
+	var rules []*rule.Rule
+	walk.Walk(cfg, cexts, dirs, walk.UpdateDirsMode, func(_dir, rel string, c *config.Config, update bool, f *rule.File, subdirs, regularFiles, genFiles []string) {
+		if rel == "" { // root directory
+			res := ext.GenerateRules(language.GenerateArgs{
+				Config:       c,
+				Rel:          rel,
+				RegularFiles: regularFiles,
+			})
+			rules = append(rules, res.Gen...)
+		}
+	})
+
+	require.Len(t, rules, 1)
+	r := rules[0]
+	assert.Equal(t, "filegroup", r.Kind())
+	srcs := r.AttrStrings("srcs")
+	assert.ElementsMatch(t, []string{"BUILD.bazel", "foo.go"}, srcs)
 }

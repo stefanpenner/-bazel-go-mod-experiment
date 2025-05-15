@@ -31,6 +31,9 @@ go_test(
     deps = [
         "@bazel_gazelle//config:go_default_library",
         "@bazel_gazelle//language:go_default_library",
+        "@bazel_gazelle//rule:go_default_library",
+        "@bazel_gazelle//testtools:go_default_library",
+        "@bazel_gazelle//walk:go_default_library",
         "@com_github_stretchr_testify//assert:go_default_library",
         "@com_github_stretchr_testify//require:go_default_library",
     ],

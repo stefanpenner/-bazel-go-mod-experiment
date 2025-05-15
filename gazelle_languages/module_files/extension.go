@@ -54,6 +54,8 @@ func (mf *ModuleFiles) KnownDirectives() []string {
 
 func (mf *ModuleFiles) Configure(c *config.Config, rel string, f *rule.File) {
 	if f == nil {
+		// somethings this get's called without the rule.File, at which point we can't really proceed so we skip
+		// TODO: understand why this happens
 		return
 	}
 
