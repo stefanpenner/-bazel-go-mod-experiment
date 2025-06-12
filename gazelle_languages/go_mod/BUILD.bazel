@@ -7,9 +7,9 @@ go_library(
     importpath = "bazel-go-mod-experiment/tools/gazelle_go_mod/tools/gazelle_go_mod",
     visibility = ["//visibility:public"],
     deps = [
-        "@bazel_gazelle//language:go_default_library",
-        "@bazel_gazelle//resolve:go_default_library",
-        "@bazel_gazelle//rule:go_default_library",
+        "@gazelle//language",
+        "@gazelle//resolve",
+        "@gazelle//rule",
     ],
 )
 

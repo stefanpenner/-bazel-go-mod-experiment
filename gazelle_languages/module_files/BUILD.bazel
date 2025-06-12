@@ -10,10 +10,10 @@ go_library(
     importpath = "bazel-go-mod-experiment/gazelle/languages/module_files",
     visibility = ["//visibility:public"],
     deps = [
-        "@bazel_gazelle//config:go_default_library",
-        "@bazel_gazelle//language:go_default_library",
-        "@bazel_gazelle//resolve:go_default_library",
-        "@bazel_gazelle//rule:go_default_library",
+        "@gazelle//config",
+        "@gazelle//language",
+        "@gazelle//resolve",
+        "@gazelle//rule",
     ],
 )
 
@@ -29,13 +29,13 @@ go_test(
     srcs = ["extensions_test.go"],
     embed = [":module_files"],
     deps = [
-        "@bazel_gazelle//config:go_default_library",
-        "@bazel_gazelle//language:go_default_library",
-        "@bazel_gazelle//rule:go_default_library",
-        "@bazel_gazelle//testtools:go_default_library",
-        "@bazel_gazelle//walk:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@gazelle//config",
+        "@gazelle//language",
+        "@gazelle//rule",
+        "@gazelle//testtools",
+        "@gazelle//walk",
     ],
 )
 

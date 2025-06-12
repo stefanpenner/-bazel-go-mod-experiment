@@ -1,13 +1,18 @@
-load("@bazel_gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle_binary")
+load("@gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle", "gazelle_binary")
 
 gazelle_binary(
-    name = "gazelle",
+    name = "gazelle_binary",
     languages = [
-        "@bazel_gazelle//language/go",  # Built-in rule from gazelle for Golang.
-        "@bazel_gazelle//language/proto",  # Built-in rule from gazelle for Protos.
+        "@gazelle//language/go",  # Built-in rule from gazelle for Golang.
+        "@gazelle//language/proto",  # Built-in rule from gazelle for Protos.
         "//gazelle_languages/module_files",
         "//gazelle_languages/go_mod",
     ],
+)
+
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle_binary",
 )
 
 filegroup(
