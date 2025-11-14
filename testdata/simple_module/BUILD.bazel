@@ -1,0 +1,26 @@
+load("@bazel-go-mod-experiment//rules:go_mod.bzl", "go_mod")
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "simple_module_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/example/simple_module",
+    visibility = ["//visibility:private"],
+    deps = ["//testdata/simple_module/pkg"],
+)
+
+go_binary(
+    name = "simple_module",
+    embed = [":simple_module_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_mod(
+    name = "go_mod_zip",
+    deps = [
+        ":simple_module_lib",
+        "//testdata/simple_module/pkg",
+    ],
+    go_mod = ":go.mod",
+    module_path = "testdata/simple_module",
+)

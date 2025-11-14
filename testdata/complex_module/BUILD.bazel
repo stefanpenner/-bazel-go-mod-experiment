@@ -1,0 +1,30 @@
+load("@bazel-go-mod-experiment//rules:go_mod.bzl", "go_mod")
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "complex_module_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/example/complex_module",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//testdata/complex_module/api",
+        "//testdata/complex_module/internal/util",
+    ],
+)
+
+go_binary(
+    name = "complex_module",
+    embed = [":complex_module_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_mod(
+    name = "go_mod_zip",
+    deps = [
+        ":complex_module_lib",
+        "//testdata/complex_module/api",
+        "//testdata/complex_module/internal/util",
+    ],
+    go_mod = ":go.mod",
+    module_path = "testdata/complex_module",
+)
