@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_library", "go_binary")
+
+go_library(
+    name = "test_module_nested_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/example/test_module_nested",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//testdata/test_module_nested/pkg1",
+        "//testdata/test_module_nested/pkg2",
+    ],
+)
+
+go_binary(
+    name = "test_module_nested",
+    embed = [":test_module_nested_lib"],
+    visibility = ["//visibility:public"],
+)

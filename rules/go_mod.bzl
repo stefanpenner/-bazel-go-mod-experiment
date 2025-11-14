@@ -1,53 +1,74 @@
 load("@rules_go//go:def.bzl", "GoInfo")
 load("@aspect_bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
 
-def _go_mod_archive_impl(ctx):
+def _go_mod_impl(ctx):
     go_mod = ctx.file.go_mod
     module_path = ctx.attr.module_path
     strip_prefix = ctx.attr.strip_prefix
 
-    # Collect all files from srcs (could be filegroups, go_library, etc.)
-    srcs_depsets = [src[DefaultInfo].files for src in ctx.attr.srcs]
-    all_srcs = depset(transitive=srcs_depsets)
+    # Collect source files from go_library targets
+    # Only include .go source files, not non-source files like BUILD.bazel, README.md, etc.
+    go_source_files = []
+    all_inputs = []
+    
+    for src in ctx.attr.srcs:
+        # If it's a go_library target, get the GoInfo
+        if GoInfo in src:
+            go_info = src[GoInfo]
+            # Get source files from the go_library (only direct sources, not transitive)
+            source_files = go_info.source.srcs.to_list()
+            go_source_files.extend(source_files)
+            # Track inputs for dependency tracking (so rule becomes dirty when sources change)
+            all_inputs.append(go_info.source.srcs)
+            # Also track transitive go files for dependency tracking, but don't include them in output
+            all_inputs.append(go_info.transitive_go_files)
+        elif DefaultInfo in src:
+            # If it's a filegroup or file, filter to only .go files
+            files = src[DefaultInfo].files.to_list()
+            for f in files:
+                if f.extension == "go":
+                    go_source_files.append(f)
+                    all_inputs.append(depset([f]))
 
-    if not all_srcs:
+    if not go_source_files:
         fail("No .go source files found in srcs: %s" % ctx.attr.srcs)
 
-    output_zip = ctx.actions.declare_file(ctx.attr.name + ".zip")
+    # Output directory instead of zip
+    output_dir = ctx.actions.declare_directory(ctx.attr.name)
 
-    # Collect all inputs: go.mod, stamp file (if any), and all srcs
+    # Collect all inputs: go.mod, stamp file (if any), and all source files
     inputs = [go_mod]
     stamp = maybe_stamp(ctx)
     if stamp:
         inputs.append(stamp.volatile_status_file)
-    all_inputs = depset(inputs, transitive=[all_srcs])
+    all_inputs_depset = depset(inputs, transitive=all_inputs)
 
     go_mod_tool = ctx.executable._go_mod_tool
 
     args = ctx.actions.args()
     args.add("--strip-prefix", ctx.label.package)
-    args.add("--output", output_zip.path)
+    args.add("--output", output_dir.path)
     args.add("--module-path", module_path)
     args.add("--go-mod", go_mod.path)
     if stamp:
         args.add("--volatile-status-file", stamp.volatile_status_file.path)
 
-    # If you need to pass all srcs as arguments, you must convert to a list
-    for src in all_srcs.to_list():
+    # Pass only .go source files
+    for src in go_source_files:
         args.add("--src", src.path)
 
     ctx.actions.run(
-        outputs=[output_zip],
-        inputs=all_inputs,
+        outputs=[output_dir],
+        inputs=all_inputs_depset,
         executable=go_mod_tool,
         arguments=[args],
-        progress_message="Creating Go module archive %s" % ctx.label,
+        progress_message="Creating Go module directory %s" % ctx.label,
     )
 
-    return [DefaultInfo(files=depset([output_zip]))]
+    return [DefaultInfo(files=depset([output_dir]))]
 
 _go_mod = rule(
-  implementation = _go_mod_archive_impl,
+  implementation = _go_mod_impl,
   attrs = dict({
     "go_mod": attr.label(
       mandatory = True,
@@ -55,11 +76,11 @@ _go_mod = rule(
       doc = "The go.mod file for the module",
     ),
     "strip_prefix": attr.string(
-
+      doc = "Prefix to strip from source file paths",
     ),
     "srcs": attr.label_list(
-      providers = [[GoInfo], []],
-      doc = "Go source files or go_library targets to include in the module archive",
+      providers = [[GoInfo], [DefaultInfo]],
+      doc = "go_library targets to include in the module. Only source files from these targets will be included.",
     ),
     "module_path": attr.string(
       mandatory = True,
@@ -69,10 +90,10 @@ _go_mod = rule(
       default = "//go_mod_tool:go_mod_tool",
       executable = True,
       cfg = "exec",
-      doc = "Go executable to create the module archive",
+      doc = "Go executable to create the module directory",
     ),
   }, **STAMP_ATTRS),
-  doc = "Creates a Go module archive (.zip) for use with a Go proxy",
+  doc = "Creates a Go module directory containing loose files for the bundled go.mod. Only depends on source files, not non-source files.",
 )
 
 def go_mod(name, go_mod, srcs, module_path, visibility = None):

@@ -1,8 +1,8 @@
 package go_mod
 
 import (
-	"path"
 	"slices"
+	"strings"
 
 	"github.com/bazelbuild/bazel-gazelle/language"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
@@ -15,11 +15,19 @@ import (
 // GoMod is the Gazelle extension for go.mod files.
 type GoMod struct {
 	language.BaseLang
-	// see: https://github.com/bazel-contrib/bazel-gazelle/blob/master/language/base.go
+	// Track go_library targets found in subdirectories
+	visitedGoLibraries map[string][]string
 }
 
+// Register FinishableLanguage interface
+var (
+	_ language.FinishableLanguage = &GoMod{}
+)
+
 func NewLanguage() language.Language {
-	return &GoMod{}
+	return &GoMod{
+		visitedGoLibraries: make(map[string][]string),
+	}
 }
 
 func (*GoMod) Name() string {
@@ -48,34 +56,58 @@ func (*GoMod) Loads() []rule.LoadInfo {
 }
 
 // generates rules for go.mod files in a given bazel package
-func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult {
+func (gm *GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 	var res language.GenerateResult
 
+	// Always record go_library targets from this package for parent packages to use
+	// This relies on gazelle's depth-first post-order traversal
+	var localLibs []string
+	if args.File != nil {
+		for _, r := range args.File.Rules {
+			if r.Kind() == "go_library" {
+				localLibs = append(localLibs, r.Name())
+			}
+		}
+	}
+	if len(localLibs) > 0 {
+		gm.visitedGoLibraries[args.Rel] = localLibs
+	}
+
 	if !slices.Contains(args.RegularFiles, "go.mod") {
-		// no go.mod, no work to be done
+		// no go.mod, no work to be done, but we've recorded libraries for parent packages
 		return res
 	}
 
-	// _pkg_ is provided by gazelle/languages/module_files
-	srcs := []string{":_pkg_"}
-
-	for _, f := range args.Subdirs {
-		// TODO: this can cause a crash today for various reasons including: when
-		// module_files ignores a folder because it contains module_file_exclude
-		// files The solution is to either, or the folder is empty...
-		//
-		// This will require some additional investigation, but I'll leave some
-		// notes for myself:
-		//
-		// * combine module_files and go_mod - this currently preferred, but knowing when
-		//   to generate the child filegroups because they are contained by a go.mod
-		//   is unclear to me
-		// * make go_mod be able to cross-resolve with module_files
-		pkg := path.Join(args.Rel, f)
-		srcs = append(srcs, "//"+pkg+":_pkg_")
+	// Find all go_library targets in the current package
+	var srcs []string
+	if args.File != nil {
+		for _, r := range args.File.Rules {
+			if r.Kind() == "go_library" {
+				name := r.Name()
+				srcs = append(srcs, ":"+name)
+			}
+		}
 	}
 
-	r := rule.NewRule("go_mod", "go_mod_zip")
+	// Collect go_library targets from subdirectories that we've visited
+	// This relies on gazelle's depth-first post-order traversal
+	for rel, libs := range gm.visitedGoLibraries {
+		if strings.HasPrefix(rel, args.Rel) && rel != args.Rel {
+			// This is a subdirectory, add its go_library targets
+			for _, lib := range libs {
+				srcs = append(srcs, "//"+rel+":"+lib)
+			}
+			// Remove it since we've used it
+			delete(gm.visitedGoLibraries, rel)
+		}
+	}
+
+	// If no go_library targets found, return empty result
+	if len(srcs) == 0 {
+		return res
+	}
+
+	r := rule.NewRule("go_mod", "go_mod")
 
 	r.SetAttr("go_mod", ":go.mod")
 	r.SetAttr("srcs", srcs)
@@ -85,4 +117,10 @@ func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult 
 	res.Imports = append(res.Imports, []resolve.ImportSpec{})
 
 	return res
+}
+
+// Finish is called after all packages have been processed
+func (gm *GoMod) Finish(c *language.Config) {
+	// Clean up any remaining visited libraries
+	gm.visitedGoLibraries = make(map[string][]string)
 }

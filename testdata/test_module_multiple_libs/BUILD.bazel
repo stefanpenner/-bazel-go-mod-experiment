@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "lib1",
+    srcs = ["lib1.go"],
+    importpath = "github.com/example/test_module_multiple_libs",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "lib2",
+    srcs = ["lib2.go"],
+    importpath = "github.com/example/test_module_multiple_libs",
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,14 @@
+load("@rules_go//go:def.bzl", "go_library", "go_binary")
+
+go_library(
+    name = "test_module_simple_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/example/test_module_simple",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "test_module_simple",
+    embed = [":test_module_simple_lib"],
+    visibility = ["//visibility:public"],
+)
