@@ -18,13 +18,13 @@ func cmd() *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "go_mod_tool",
-		Short: "Create a Go module archive (.zip) for use with a Go proxy",
+		Short: "Create a Go module directory containing loose files for the bundled go.mod",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cfg)
 		},
 	}
 
-	command.Flags().StringVar(&cfg.Output, "output", "", "Path to output .zip file")
+	command.Flags().StringVar(&cfg.Output, "output", "", "Path to output directory")
 	command.Flags().StringVar(&cfg.ModulePath, "module-path", "", "Module path (e.g., github.com/my_project)")
 	command.Flags().StringVar(&cfg.VolatileStatusFile, "volatile-status-file", "", "Path to a file that will be stamped with the current timestamp")
 	command.Flags().StringVar(&cfg.GoMod, "go-mod", "", "Path to go.mod file")

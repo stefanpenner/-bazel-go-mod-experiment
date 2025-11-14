@@ -1,21 +1,16 @@
 package main
 
 import (
-	"archive/zip"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
 func run(cfg Config) error {
-	zipFile, err := os.Create(cfg.Output)
-	if err != nil {
-		return fmt.Errorf("failed to create %s: %w", cfg.Output, err)
+	// Create output directory
+	if err := os.MkdirAll(cfg.Output, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory %s: %w", cfg.Output, err)
 	}
-	defer zipFile.Close()
-
-	zw := zip.NewWriter(zipFile)
-	defer zw.Close()
 
 	status, err := parseStatusFile(cfg.VolatileStatusFile)
 	if err != nil {
@@ -28,24 +23,30 @@ func run(cfg Config) error {
 	if !has_version {
 		version = "__unversioned__"
 	}
-	moduleDir := cfg.ModulePath + "@" + version
+	moduleDir := filepath.Join(cfg.Output, cfg.ModulePath+"@"+version)
+
+	// Create the module directory
+	if err := os.MkdirAll(moduleDir, 0755); err != nil {
+		return fmt.Errorf("failed to create module directory %s: %w", moduleDir, err)
+	}
 
 	// TODO: now look at the go.mod, and update versions based on the version set in the status file
 
-	if err := addFileToZip(zw, cfg.GoMod, filepath.Join(moduleDir, "go.mod")); err != nil {
-		return fmt.Errorf("failed to add go.mod to zip: %w", err)
+	// Copy go.mod to the module directory
+	goModDest := filepath.Join(moduleDir, "go.mod")
+	if err := copyFile(cfg.GoMod, goModDest); err != nil {
+		return fmt.Errorf("failed to copy go.mod: %w", err)
 	}
 
+	// Copy all source files to the module directory
 	for _, src := range cfg.SrcFiles {
 		relPath := stripPathPrefix(src, cfg.StripPrefix)
-		zipPath := filepath.Join(moduleDir, relPath)
-		if err := addFileToZip(zw, src, zipPath); err != nil {
-			return fmt.Errorf("failed to add %s to zip: %w", src, err)
+		destPath := filepath.Join(moduleDir, relPath)
+		
+		if err := copyFile(src, destPath); err != nil {
+			return fmt.Errorf("failed to copy %s: %w", src, err)
 		}
 	}
 
-	if err := zw.Flush(); err != nil {
-		return fmt.Errorf("failed to flush zip: %w", err)
-	}
 	return nil
 }

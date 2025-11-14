@@ -1,23 +1,30 @@
 package main
 
 import (
-	"archive/zip"
 	"io"
 	"os"
+	"path/filepath"
 )
 
-func addFileToZip(zw *zip.Writer, srcPath, zipPath string) error {
+// copyFile copies a file from srcPath to destPath, creating parent directories if needed
+func copyFile(srcPath, destPath string) error {
+	// Create parent directories
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		return err
+	}
+
 	srcFile, err := os.Open(srcPath)
 	if err != nil {
 		return err
 	}
 	defer srcFile.Close()
 
-	zipEntry, err := zw.Create(zipPath)
+	destFile, err := os.Create(destPath)
 	if err != nil {
 		return err
 	}
+	defer destFile.Close()
 
-	_, err = io.Copy(zipEntry, srcFile)
+	_, err = io.Copy(destFile, srcFile)
 	return err
 }
