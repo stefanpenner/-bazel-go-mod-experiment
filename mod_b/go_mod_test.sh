@@ -1,48 +1,46 @@
 #!/bin/bash
+set -euo pipefail
 
-# Get the path to the zip file
-ZIP_FILE="$GO_MOD"
+MODULE_STAGING="${GO_MOD_DIR:-}"
 
-# Create a temporary directory for extraction
-TMP_DIR="$TEST_TMPDIR/mod_b_test"
-
-# Extract the zip file
-unzip -q "$ZIP_FILE" -d "$TMP_DIR"
-
-# Verify the module structure
-MODULE_DIR=($TMP_DIR/mod_b@*)
-
-if [ -d "$file" ]; then
-  echo "Error: Module directory not found: $MODULE_DIR"
+if [ ! -d "$MODULE_STAGING" ]; then
+  echo "Error: GO_MOD_DIR path is not a directory: $MODULE_STAGING"
   exit 1
 fi
+
+shopt -s nullglob
+MODULE_CANDIDATES=("$MODULE_STAGING"/mod_b@*)
+shopt -u nullglob
+
+if [ "${#MODULE_CANDIDATES[@]}" -eq 0 ]; then
+  echo "Error: Module directory not found under $MODULE_STAGING"
+  exit 1
+fi
+
+MODULE_DIR="${MODULE_CANDIDATES[0]}"
 
 if [ ! -d "$MODULE_DIR" ]; then
-  echo "Error: Module directory not found: $MODULE_DIR"
+  echo "Error: Expected module directory missing: $MODULE_DIR"
   exit 1
 fi
 
-# Verify go.mod exists and has correct content
-GO_MOD="$MODULE_DIR/go.mod"
-if [ ! -f "$GO_MOD" ]; then
-  echo "Error: go.mod not found"
+GO_MOD_FILE="$MODULE_DIR/go.mod"
+if [ ! -f "$GO_MOD_FILE" ]; then
+  echo "Error: go.mod not found in $MODULE_DIR"
   exit 1
 fi
 
-# Verify source files exist
 if [ ! -f "$MODULE_DIR/lib.go" ]; then
   echo "Error: $MODULE_DIR/lib.go not found, but was expected"
   exit 1
 fi
 
-# Verify go.mod content
-if ! grep -q "module github.com/stefanpenner/-bazel-go-mod-experiment/mod_b" "$GO_MOD"; then
+if ! grep -q "module github.com/stefanpenner/-bazel-go-mod-experiment/mod_b" "$GO_MOD_FILE"; then
   echo "Error: go.mod has incorrect module path"
-  cat "$MODULE_DIR/$GO_MOD"
+  cat "$GO_MOD_FILE"
   exit 1
 fi
 
-# Verify main.go content
 if ! grep -q "package mod_b" "$MODULE_DIR/lib.go"; then
   echo "Error: $MODULE_DIR/lib.go has incorrect package declaration"
   cat "$MODULE_DIR/lib.go"

@@ -15,9 +15,19 @@ go_library(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [":_pkg_"],
     go_mod = ":go.mod",
     module_path = "extensions/gazelle/go_mod",
+    deps = [":go_mod"],
+)
+
+go_test(
+    name = "go_mod_test",
+    srcs = ["extension_test.go"],
+    embed = [":go_mod"],
+    deps = [
+        "@gazelle//language",
+        "@gazelle//rule",
+    ],
 )
 
 filegroup(
@@ -25,6 +35,7 @@ filegroup(
     srcs = [
         "BUILD.bazel",
         "extension.go",
+        "extension_test.go",
         "go.mod",
         "go.sum",
     ],

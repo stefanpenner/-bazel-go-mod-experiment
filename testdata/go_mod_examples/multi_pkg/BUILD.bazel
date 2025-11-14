@@ -1,0 +1,34 @@
+load("@bazel-go-mod-experiment//rules:go_mod.bzl", "go_mod")
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "multipkg",
+    srcs = ["main.go"],
+    importpath = "github.com/example/multipkg",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//testdata/go_mod_examples/multi_pkg/alpha",
+        "//testdata/go_mod_examples/multi_pkg/beta",
+    ],
+)
+
+go_mod(
+    name = "go_mod_multi_pkg",
+    go_mod = ":go.mod",
+    module_path = "github.com/example/multipkg",
+    deps = [
+        ":multipkg",
+        "//testdata/go_mod_examples/multi_pkg/alpha",
+        "//testdata/go_mod_examples/multi_pkg/beta",
+    ],
+)
+
+sh_test(
+    name = "go_mod_multi_pkg_test",
+    srcs = ["check_multi_pkg.sh"],
+    data = [":go_mod_multi_pkg"],
+    env = {
+        "GO_MOD_DIR": "$(location :go_mod_multi_pkg)",
+    },
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)

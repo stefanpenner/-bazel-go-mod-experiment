@@ -1,10 +1,9 @@
 package main
 
 import (
-	"archive/zip"
-	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,16 +27,18 @@ func TestRun(t *testing.T) {
 	require.NoError(t, os.WriteFile(statusFile, []byte(stampContent), 0644))
 
 	tests := []struct {
-		name        string
-		cfg         Config
-		wantErr     bool
-		wantFiles   []string
-		wantContent map[string]string
+		name              string
+		cfg               Config
+		moduleVersionPath string
+		wantErr           bool
+		wantFiles         []string
+		wantContent       map[string]string
 	}{
 		{
-			name: "basic zip creation",
+			name:              "basic directory creation",
+			moduleVersionPath: "example.com/test@v1.0.0",
 			cfg: Config{
-				Output:             filepath.Join(tmpDir, "out.zip"),
+				OutputDir:          filepath.Join(tmpDir, "out"),
 				ModulePath:         "example.com/test",
 				GoMod:              goModFile,
 				SrcFiles:           []string{srcFile},
@@ -66,38 +67,27 @@ func TestRun(t *testing.T) {
 
 			require.NoError(t, err)
 
-			// Verify zip contents
-			r, err := zip.OpenReader(tt.cfg.Output)
-			require.NoError(t, err)
-			defer r.Close()
-
-			// Check file names
-			var foundFiles []string
-			for _, f := range r.File {
-				foundFiles = append(foundFiles, f.Name)
-			}
-			assert.ElementsMatch(t, tt.wantFiles, foundFiles, "zip file contents don't match")
-
-			// Check file contents
+			moduleDir := filepath.Join(tt.cfg.OutputDir, tt.moduleVersionPath)
 			for name, wantContent := range tt.wantContent {
-				found := false
-				for _, f := range r.File {
-					if f.Name == name {
-						found = true
-						rc, err := f.Open()
-						require.NoError(t, err)
-						content, err := io.ReadAll(rc)
-						rc.Close()
-						require.NoError(t, err)
-						gotContent := string(content)
-						if gotContent != wantContent {
-							t.Errorf("content mismatch for %s:\nwant:\n%s\ngot:\n%s", name, wantContent, gotContent)
-						}
-						break
-					}
-				}
-				assert.True(t, found, "file %s not found in zip", name)
+				rel := strings.TrimPrefix(name, tt.moduleVersionPath+"/")
+				fullPath := filepath.Join(moduleDir, rel)
+				data, err := os.ReadFile(fullPath)
+				require.NoError(t, err, "failed reading %s", fullPath)
+				assert.Equal(t, wantContent, string(data))
 			}
+
+			var found []string
+			err = filepath.Walk(moduleDir, func(path string, info os.FileInfo, err error) error {
+				require.NoError(t, err)
+				if !info.IsDir() {
+					rel, err := filepath.Rel(moduleDir, path)
+					require.NoError(t, err)
+					found = append(found, tt.moduleVersionPath+"/"+rel)
+				}
+				return nil
+			})
+			require.NoError(t, err)
+			assert.ElementsMatch(t, tt.wantFiles, found)
 		})
 	}
 }

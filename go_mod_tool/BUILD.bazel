@@ -4,7 +4,7 @@ load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 go_library(
     name = "go_mod_tool_lib",
     srcs = [
-        "add_file_to_zip.go",
+        "copy_file.go",
         "cmd.go",
         "main.go",
         "parse_status_file.go",
@@ -25,7 +25,7 @@ go_binary(
 go_test(
     name = "go_mod_tool_test",
     srcs = [
-        "add_file_to_zip_test.go",
+        "copy_file_test.go",
         "parse_status_file_test.go",
         "run_test.go",
         "strip_path_prefix_test.go",
@@ -39,18 +39,18 @@ go_test(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [":_pkg_"],
     go_mod = ":go.mod",
     module_path = "go_mod_tool",
+    deps = [":go_mod_tool_lib"],
 )
 
 filegroup(
     name = "_pkg_",
     srcs = [
         "BUILD.bazel",
-        "add_file_to_zip.go",
-        "add_file_to_zip_test.go",
         "cmd.go",
+        "copy_file.go",
+        "copy_file_test.go",
         "go.mod",
         "go.sum",
         "main.go",

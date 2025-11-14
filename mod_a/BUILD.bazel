@@ -20,13 +20,13 @@ go_binary(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [
-        ":_pkg_",
-        "//mod_a/baz:_pkg_",
-        "//mod_a/foo:_pkg_",
-    ],
     go_mod = ":go.mod",
     module_path = "mod_a",
+    deps = [
+        ":mod_a_lib",
+        "//mod_a/baz",
+        "//mod_a/foo",
+    ],
 )
 
 filegroup(

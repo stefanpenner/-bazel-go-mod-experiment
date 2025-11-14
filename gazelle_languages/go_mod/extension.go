@@ -1,8 +1,9 @@
 package go_mod
 
 import (
-	"path"
 	"slices"
+	"sort"
+	"strings"
 
 	"github.com/bazelbuild/bazel-gazelle/language"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
@@ -15,11 +16,13 @@ import (
 // GoMod is the Gazelle extension for go.mod files.
 type GoMod struct {
 	language.BaseLang
-	// see: https://github.com/bazel-contrib/bazel-gazelle/blob/master/language/base.go
+	pending map[string][]string
 }
 
 func NewLanguage() language.Language {
-	return &GoMod{}
+	return &GoMod{
+		pending: map[string][]string{},
+	}
 }
 
 func (*GoMod) Name() string {
@@ -31,8 +34,8 @@ func (*GoMod) Kinds() map[string]rule.KindInfo {
 	return map[string]rule.KindInfo{
 		"go_mod": {
 			MatchAny:       true,
-			NonEmptyAttrs:  map[string]bool{"srcs": true},
-			MergeableAttrs: map[string]bool{"srcs": true},
+			NonEmptyAttrs:  map[string]bool{"deps": true},
+			MergeableAttrs: map[string]bool{"deps": true},
 		},
 	}
 }
@@ -48,41 +51,112 @@ func (*GoMod) Loads() []rule.LoadInfo {
 }
 
 // generates rules for go.mod files in a given bazel package
-func (*GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult {
+func (g *GoMod) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 	var res language.GenerateResult
 
 	if !slices.Contains(args.RegularFiles, "go.mod") {
-		// no go.mod, no work to be done
+		g.recordPending(args)
 		return res
 	}
 
-	// _pkg_ is provided by gazelle/languages/module_files
-	srcs := []string{":_pkg_"}
-
-	for _, f := range args.Subdirs {
-		// TODO: this can cause a crash today for various reasons including: when
-		// module_files ignores a folder because it contains module_file_exclude
-		// files The solution is to either, or the folder is empty...
-		//
-		// This will require some additional investigation, but I'll leave some
-		// notes for myself:
-		//
-		// * combine module_files and go_mod - this currently preferred, but knowing when
-		//   to generate the child filegroups because they are contained by a go.mod
-		//   is unclear to me
-		// * make go_mod be able to cross-resolve with module_files
-		pkg := path.Join(args.Rel, f)
-		srcs = append(srcs, "//"+pkg+":_pkg_")
+	deps := g.collectLibraries(args)
+	if len(deps) == 0 {
+		return res
 	}
 
 	r := rule.NewRule("go_mod", "go_mod_zip")
-
 	r.SetAttr("go_mod", ":go.mod")
-	r.SetAttr("srcs", srcs)
 	r.SetAttr("module_path", args.Rel)
+	r.SetAttr("deps", deps)
 
 	res.Gen = append(res.Gen, r)
 	res.Imports = append(res.Imports, []resolve.ImportSpec{})
 
 	return res
+}
+
+func (g *GoMod) collectLibraries(args language.GenerateArgs) []string {
+	var deps []string
+
+	for _, r := range args.OtherGen {
+		if r.Kind() == "go_library" {
+			deps = append(deps, labelForRule(args.Rel, r.Name()))
+		}
+	}
+
+	if pending := g.consumeDescendants(args.Rel); len(pending) > 0 {
+		deps = append(deps, pending...)
+	}
+
+	deps = dedupeAndSort(deps)
+	if len(deps) == 0 {
+		return nil
+	}
+	return deps
+}
+
+func (g *GoMod) recordPending(args language.GenerateArgs) {
+	local := g.collectLocalOnly(args)
+	if len(local) == 0 {
+		return
+	}
+	g.pending[args.Rel] = append(g.pending[args.Rel], local...)
+}
+
+func (g *GoMod) collectLocalOnly(args language.GenerateArgs) []string {
+	var deps []string
+	for _, r := range args.OtherGen {
+		if r.Kind() == "go_library" {
+			deps = append(deps, labelForRule(args.Rel, r.Name()))
+		}
+	}
+	return deps
+}
+
+func (g *GoMod) consumeDescendants(rel string) []string {
+	var keys []string
+	if rel == "" {
+		for key := range g.pending {
+			keys = append(keys, key)
+		}
+	} else {
+		prefix := rel + "/"
+		for key := range g.pending {
+			if strings.HasPrefix(key, prefix) {
+				keys = append(keys, key)
+			}
+		}
+	}
+
+	sort.Strings(keys)
+
+	var deps []string
+	for _, key := range keys {
+		deps = append(deps, g.pending[key]...)
+		delete(g.pending, key)
+	}
+	return deps
+}
+
+func labelForRule(rel, name string) string {
+	if rel == "" {
+		return "//:" + name
+	}
+	return "//" + rel + ":" + name
+}
+
+func dedupeAndSort(values []string) []string {
+	if len(values) == 0 {
+		return values
+	}
+	sort.Strings(values)
+	result := values[:0]
+	var last string
+	for i, v := range values {
+		if i == 0 || v != last {
+			result = append(result, v)
+			last = v
+		}
+	}
+	return result
 }

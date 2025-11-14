@@ -10,9 +10,9 @@ go_library(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [":_pkg_"],
     go_mod = ":go.mod",
     module_path = "foo/bar",
+    deps = [":bar"],
 )
 
 filegroup(

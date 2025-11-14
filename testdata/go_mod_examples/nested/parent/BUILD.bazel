@@ -1,0 +1,26 @@
+load("@bazel-go-mod-experiment//rules:go_mod.bzl", "go_mod")
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "parentlib",
+    srcs = ["parent.go"],
+    importpath = "github.com/example/nested/parent",
+    visibility = ["//visibility:public"],
+)
+
+go_mod(
+    name = "go_mod_parent",
+    go_mod = ":go.mod",
+    module_path = "github.com/example/nested/parent",
+    deps = [":parentlib"],
+)
+
+sh_test(
+    name = "go_mod_parent_test",
+    srcs = ["check_parent.sh"],
+    data = [":go_mod_parent"],
+    env = {
+        "GO_MOD_DIR": "$(location :go_mod_parent)",
+    },
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)

@@ -1,0 +1,8 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "alpha",
+    srcs = ["alpha.go"],
+    importpath = "github.com/example/multipkg/alpha",
+    visibility = ["//visibility:public"],
+)

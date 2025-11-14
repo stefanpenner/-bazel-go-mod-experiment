@@ -6,15 +6,29 @@ A proof-of-concept for 100% Bazel-based Go module publishing. Requiring `go_mod`
 
 https://excalidraw.com/#json=f6YI4RFIy_ekfjJ3NBGvI,vZonSZodkQ0jZYRuVAAi4A
 
+### go_mod rule
+
+`rules/go_mod.bzl` now stages loose module files into a tree artifact instead
+of writing a zip. The rule takes the set of `go_library` targets that belong to
+the module (including any sub-packages) and copies their Go sources alongside
+`go.mod`. This keeps the action cache hot for source changes without forcing
+non-source targets to build.
+
+Gazelle automatically generates these `go_mod` rules via the
+`gazelle_languages/go_mod` extension by discovering all `go_library` targets
+under each `go.mod`.
+
+See `testdata/go_mod_examples/` for concrete modules and shell tests that
+exercise the staged output.
+
 ### TODO:
 
-
 - [ ] add a protoc codegen example as well
-- [ ] go_mod also needs to include go_libraries that reside in subpackages, and not directly referenced in the current package.
+- [x] go_mod also needs to include go_libraries that reside in subpackages, and not directly referenced in the current package.
 - [ ] can go_mod rule infer importpath from it's srcs?
 - [ ] can go_mod rule infer go.mod location, rather then hardcoding it?
 - [ ] version manifest
-- [ ] gazelle rule to generate go_mod files
+- [x] gazelle rule to generate go_mod files
 - [ ] relationshipn betweeen publishing rule and go_mod, how does it work, and how do we derive which go_mods have changed, so we know how to version them.
 
 ### Algorithm for Module Publishing

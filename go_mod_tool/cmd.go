@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	Output             string
+	OutputDir          string
 	ModulePath         string
 	VolatileStatusFile string
 	GoMod              string
@@ -24,7 +24,7 @@ func cmd() *cobra.Command {
 		},
 	}
 
-	command.Flags().StringVar(&cfg.Output, "output", "", "Path to output .zip file")
+	command.Flags().StringVar(&cfg.OutputDir, "output-dir", "", "Path to output directory for loose module files")
 	command.Flags().StringVar(&cfg.ModulePath, "module-path", "", "Module path (e.g., github.com/my_project)")
 	command.Flags().StringVar(&cfg.VolatileStatusFile, "volatile-status-file", "", "Path to a file that will be stamped with the current timestamp")
 	command.Flags().StringVar(&cfg.GoMod, "go-mod", "", "Path to go.mod file")
@@ -32,7 +32,7 @@ func cmd() *cobra.Command {
 	command.Flags().StringVar(&cfg.StripPrefix, "strip-prefix", "", "Prefix to strip from source file paths")
 
 	// Mark required flags
-	command.MarkFlagRequired("output")
+	command.MarkFlagRequired("output-dir")
 	command.MarkFlagRequired("module-path")
 	command.MarkFlagRequired("volatile-status-file")
 	command.MarkFlagRequired("go-mod")

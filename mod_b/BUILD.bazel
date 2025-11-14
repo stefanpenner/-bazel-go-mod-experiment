@@ -6,7 +6,7 @@ sh_test(
     srcs = ["go_mod_test.sh"],
     data = [":go_mod_zip"],
     env = {
-        "GO_MOD": "$(location :go_mod_zip)",
+        "GO_MOD_DIR": "$(location :go_mod_zip)",
     },
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )
@@ -20,9 +20,9 @@ go_library(
 
 go_mod(
     name = "go_mod_zip",
-    srcs = [":_pkg_"],
     go_mod = ":go.mod",
     module_path = "mod_b",
+    deps = [":mod_b"],
 )
 
 filegroup(
